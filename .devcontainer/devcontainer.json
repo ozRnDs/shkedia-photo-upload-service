@@ -4,5 +4,6 @@
         "context": "../"
     },
     "forwardPorts": [5000],
-    "runArgs": [ "-v", "${localEnv:POSTGRES_CRED_LOCATION}/:/temp/", "-p", "25000:5000"]
+    "runArgs": [ "-v", "${localEnv:POSTGRES_CRED_LOCATION}/:/temp/", "-p","25001:5000"],
+    "shutdownAction": "stopContainer"
 }
