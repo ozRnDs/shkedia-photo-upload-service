@@ -17,6 +17,9 @@ class ApplicationConfiguration:
     MEDIA_DB_PORT: str = "4431"
     MEDIA_REPO_HOST: str = "10.0.0.5"
     MEDIA_REPO_PORT: str = "4432"
+    USER_DB_HOST: str = "10.0.0.5"
+    USER_DB_PORT: str = "24430"
+
 
     # Encryption Configuration Values
     PUBLIC_KEY_LOCATION: str = ".local/data.pub"
