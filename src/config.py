@@ -15,7 +15,12 @@ class ApplicationConfiguration:
     # DB Configuration values
     MEDIA_DB_HOST: str = "10.0.0.5"
     MEDIA_DB_PORT: str = "4431"
-    MEDIA_REPO_URI: str = "http://10.0.0.5:5555"
+    MEDIA_REPO_HOST: str = "10.0.0.5"
+    MEDIA_REPO_PORT: str = "4432"
+
+    # Encryption Configuration Values
+    PUBLIC_KEY_LOCATION: str = ".local/data.pub"
+    PRIVATE_KEY_LOCATION: str = ".local/data"
     
     def __init__(self) -> None:
         self.logger = logging.getLogger()

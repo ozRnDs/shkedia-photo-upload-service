@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from datetime import datetime
 import base64
 
+from repo.service import MediaRepoService
 from db.service import MediaDBService, MediaDB, MediaRequest, SearchResult, Token
 from image_processing.service import ImageProccessingService
 from encryption.service import EncryptService
@@ -57,7 +58,7 @@ class UploadServiceHandlerV1:
                 #  auth_service: AuthService,
                 media_db_service: MediaDBService,
                 encryption_service: EncryptService,
-                media_repo_uri: str,
+                media_repo_service: MediaRepoService,
                 image_proccessing_service: ImageProccessingService,
                 max_response_length: int = 200,
                  ):
@@ -65,7 +66,7 @@ class UploadServiceHandlerV1:
         self.logging_service = app_logging_service
         self.image_proccessing_service=image_proccessing_service
         self.encrytion_service = encryption_service
-        self.media_repo_uri = media_repo_uri
+        self.media_repo_service = media_repo_service
         self.max_response_length = max_response_length
         # self.auth_service = auth_service
         # if not self.media_db_service.is_ready():
@@ -174,10 +175,14 @@ class UploadServiceHandlerV1:
     def put_image(self, token: Annotated[Token, Depends(get_token)], 
                   user_name: str, device_id: str, 
                   image_name: str, image_id: str, 
-                  image_content: UploadFile):
+                  image_content: UploadFile,
+                  overwrite: bool = False) -> dict:
         try:
             # Get the image metadata
             search_result = self.media_db_service.search_media(token=token, media_id=image_id)
+            search_result = search_result.results[0]
+            if not overwrite and search_result.storage_media_uri:
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Media with that name already exists")
             values_to_encrypt={}
             values_to_encrypt["image"]=image_content.file.read()
             # Create thumbnail of the image
@@ -186,17 +191,19 @@ class UploadServiceHandlerV1:
             values_to_encrypt, encrypted_key = self.encrytion_service.encrypt(values_to_encrypt=values_to_encrypt)
 
             #TODO: Upload the encrypted image to the repo
+            media_storage_info = self.media_repo_service.put_media(token=token, 
+                                                                   media_id=search_result.media_id,
+                                                                   media_bytes=values_to_encrypt["image"])
 
             # Update the image metadata in the db (Added key, thumbnail, storage status and url)
             search_result.media_key=encrypted_key
             search_result.media_thumbnail=values_to_encrypt["thumbnail"]
-            search_result.storage_bucket_name="BUCKET_NAME" # Make sure repo returns it
-            search_result.storage_media_uri="test" # Make sure repo returns it
-            search_result.storage_service_name="S3" # Make sure repo returns it
+            search_result.storage_bucket_name=media_storage_info.bucket_name
+            search_result.storage_media_uri=media_storage_info.media_uri # Make sure repo returns it
+            search_result.storage_service_name=media_storage_info.storage_service_name # Make sure repo returns it
             search_result.upload_status="UPLOADED"
             self.media_db_service.update(token=token, media=search_result)
-
-            raise HTTPException(status_code=status.HTTP_425_TOO_EARLY)
+            return {}
         except Exception as err:
             if type(err) == HTTPException:
                 raise err            
