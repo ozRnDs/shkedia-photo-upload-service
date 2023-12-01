@@ -22,8 +22,12 @@ class MediaRequest(BaseModel):
     media_name: str
     media_type: str
     media_size_bytes: int
-    # media_description: str # TODO: Add to the SQL table
+    media_description: str = "-"
+    media_width: int | None = None
+    media_height: int | None = None
     media_thumbnail: str | None = None
+    media_thumbnail_width: int | None = None
+    media_thumbnail_height: int | None = None
     created_on: datetime
     device_id: str
     device_media_uri: str  
@@ -46,20 +50,24 @@ class MediaDB(MediaResponse):
         MediaResponse.__init__(self,**karg)
 
     @staticmethod
-    def __sql_create_table__():
-        sql_template = """CREATE TABLE IF NOT EXISTS medias (
+    def __sql_create_table__(environment: str):
+        sql_template = """CREATE TABLE IF NOT EXISTS medias_"""+environment+""" (
             media_name VARCHAR ( 250 ) NOT NULL,
             media_type VARCHAR ( 50 ) NOT NULL,
             media_size_bytes INTEGER NOT NULL,
             media_description TEXT,
-            media_thumbnail VARCHAR ( 50 ),
+            media_width smallint,
+            media_height smallint,
+            media_thumbnail TEXT,
+            media_thumbnail_width smallint,
+            media_thumbnail_height smallint,
             created_on TIMESTAMP NOT NULL,
-            device_id VARCHAR ( 50 ) NOT NULL REFERENCES devices(device_id),
+            device_id VARCHAR ( 50 ) NOT NULL REFERENCES devices_"""+environment+"""(device_id),
             device_media_uri VARCHAR ( 250 ) NOT NULL,
             media_id VARCHAR ( 50 ) PRIMARY KEY,
             upload_status VARCHAR ( 50 ) NOT NULL,
             media_status_on_device VARCHAR ( 50 ) NOT NULL,
-            owner_id VARCHAR ( 50 ) NOT NULL REFERENCES users(user_id),
+            owner_id VARCHAR ( 50 ) NOT NULL REFERENCES users_"""+environment+"""(user_id),
             storage_service_name VARCHAR ( 50 ),
             storage_bucket_name VARCHAR ( 50 ),
             storage_media_uri VARCHAR ( 250 ),
@@ -67,7 +75,7 @@ class MediaDB(MediaResponse):
         )"""
         return sql_template
     
-    def __sql_insert__(self):
+    def __sql_insert__(self, environment: str):
         columns = []
         values = []
         for field_name, field_value in self.model_dump().items():
@@ -75,13 +83,13 @@ class MediaDB(MediaResponse):
                 columns.append(field_name)
                 values.append(field_value)
 
-        sql_template = "INSERT INTO medias (" + ",".join(columns) + ") VALUES ("+",".join(["%s"]*len(columns))+")"
+        sql_template = "INSERT INTO medias_"+environment+"(" + ",".join(columns) + ") VALUES ("+",".join(["%s"]*len(columns))+")"
         values = (tuple)(values)
         return sql_template, values
 
     @staticmethod
-    def __sql_select_item__(field_names, field_values):
-        sql_template = f"SELECT * FROM medias WHERE"
+    def __sql_select_item__(field_names, field_values, environment: str):
+        sql_template = f"SELECT * FROM medias_{environment} WHERE"
         search_string = []
         sql_values=[]
         for field_index, field_name in enumerate(field_names):
@@ -91,13 +99,13 @@ class MediaDB(MediaResponse):
         sql_template += " "+" AND ".join(search_string)
         return sql_template, (tuple)(sql_values)
 
-    def __sql_update_item__(self,updated_model):
+    def __sql_update_item__(self,updated_model, environment: str):
         update_dictionary = self.__get_updated_values__(updated_model=updated_model)
         if len(update_dictionary)==0:
             raise AttributeError("Nothing to update")
         values = []
         update_list = []
-        sql_template = "UPDATE medias SET "
+        sql_template = f"UPDATE medias_{environment} SET "
         for field_name, field_value in update_dictionary.items():
             if not field_value:
                 update_list.append(f"{field_name}=''")
