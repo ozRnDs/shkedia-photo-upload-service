@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from datetime import timedelta, datetime
 
-from db.service import MediaDBService
+from db.media_service import MediaDBService
 from models.user import UserDB
 
 

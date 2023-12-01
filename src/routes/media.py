@@ -8,7 +8,7 @@ from datetime import datetime
 import base64
 
 from repo.service import MediaRepoService
-from db.service import MediaDBService, MediaDB, MediaRequest, SearchResult, Token
+from db.media_service import MediaDBService, MediaDB, MediaRequest, SearchResult, Token
 from image_processing.service import ImageProccessingService
 from encryption.service import EncryptService
 
@@ -20,8 +20,13 @@ def get_token(request:Request):
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Please Go Away")
 
 class GetLatestImageResponse(BaseModel):
-    last_image_date: datetime
+    last_image_date: int
     #TODO: Create test to compare with current service
+
+    @staticmethod
+    def get_latest_image_repsonse(create_on: datetime):
+        return GetLatestImageResponse(last_image_date=int(create_on.timestamp()))
+
 
 class ImageRequest(BaseModel):
     name: str
@@ -105,13 +110,15 @@ class UploadServiceHandlerV1:
     def get_latest_image_date(self, token: Annotated[Token, Depends(get_token)], user_name: str, device_id: str) -> GetLatestImageResponse:
         try:
             search_result = self.media_db_service.search_media(token=token,device_id=device_id)
+            if search_result.total_results_number==0:
+                return GetLatestImageResponse.get_latest_image_repsonse(create_on=datetime(year=1970, month=1, day=1))
             media_list_for_device = search_result.results
             while len(media_list_for_device) < search_result.total_results_number:
-                search_result = self.media_db_service.search_media(token=Token.get_token_from_request(request),device_id=device_id, page_number=search_result.page_number+1)
+                search_result = self.media_db_service.search_media(token=token,device_id=device_id, page_number=search_result.page_number+1)
             
             media_list_for_device.sort(key=lambda x: x.created_on, reverse=True)
 
-            return GetLatestImageResponse(last_image_date=media_list_for_device[0].created_on)
+            return GetLatestImageResponse.get_latest_image_repsonse(create_on=media_list_for_device[0].created_on)
 
         except Exception as err:
             if type(err) == HTTPException:
@@ -123,10 +130,11 @@ class UploadServiceHandlerV1:
 
     def get_images_to_upload(self, token: Annotated[Token, Depends(get_token)], user_name:str, device_id: str, image_index: int=0)-> GetUploadListResponse:
         try:
-            #TODO: Get all images for device_id and their MEDIA_STOAGE_STATUS=PENDING
+            # Get all images for device_id and their MEDIA_STOAGE_STATUS=PENDING
             search_result = self.media_db_service.search_media(token=token, device_id=device_id, upload_status="PENDING")
-
             media_list_for_device = search_result.results
+            if len(media_list_for_device)==0:
+                return GetUploadListResponse(images_names=[], images_ids=[], images_uri=[])
             while len(media_list_for_device) < search_result.total_results_number:
                 search_result = self.media_db_service.search_media(token=token,device_id=device_id, upload_status="PENDING", page_number=search_result.page_number+1)
             #TODO: Sort all the images by created date
@@ -151,7 +159,7 @@ class UploadServiceHandlerV1:
                 media_request = MediaRequest(media_name=image.name,
                                              media_type="IMAGE",
                                              media_size_bytes=image.size,
-                                             created_on=image.dateStr,
+                                             created_on=datetime.fromtimestamp(image.date),
                                              device_id=device_id,
                                              device_media_uri=image.uri)
                 try:
@@ -190,7 +198,7 @@ class UploadServiceHandlerV1:
             # Encrypt all the data and get encrypted key
             values_to_encrypt, encrypted_key = self.encrytion_service.encrypt(values_to_encrypt=values_to_encrypt)
 
-            #TODO: Upload the encrypted image to the repo
+            # Upload the encrypted image to the repo
             media_storage_info = self.media_repo_service.put_media(token=token, 
                                                                    media_id=search_result.media_id,
                                                                    media_bytes=values_to_encrypt["image"])

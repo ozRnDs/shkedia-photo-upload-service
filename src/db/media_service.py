@@ -46,6 +46,8 @@ class MediaDBService:
 
         if search_response.status_code == 200:
             return SearchResult(**search_response.json())
+        if search_response.status_code == 404:
+            return SearchResult(total_results_number=0, results=[])
         raise Exception(search_response.json()["detail"])
     
     def delete(self, token: Token, media_id) -> MediaDB:
