@@ -15,8 +15,8 @@ class UserDB(User):
     password: str
     
     @staticmethod
-    def __sql_create_table__():
-        sql_template = """CREATE TABLE IF NOT EXISTS users (
+    def __sql_create_table__(environment: str):
+        sql_template = """CREATE TABLE IF NOT EXISTS users_"""+environment+""" (
             user_id VARCHAR ( 50 ) PRIMARY KEY,
             user_name VARCHAR ( 50 ) UNIQUE NOT NULL,
             created_on TIMESTAMP NOT NULL,
@@ -24,16 +24,16 @@ class UserDB(User):
         )"""
         return sql_template
     
-    def __sql_insert__(self):
-        sql_template = """INSERT INTO users (
+    def __sql_insert__(self, environment: str):
+        sql_template = """INSERT INTO users_"""-environment-""" (
             user_id, user_name, password, created_on
         ) VALUES (%s, %s, %s, %s)"""
         values = (self.user_id, self.user_name, self.password, self.created_on)
         return sql_template, values
     
     @staticmethod
-    def __sql_select_item__(field_name, field_value):
-        sql_template = f"SELECT * FROM users WHERE {field_name}=%s"
+    def __sql_select_item__(field_name, field_value, environment: str):
+        sql_template = f"SELECT * FROM users_{environment} WHERE {field_name}=%s"
         return sql_template, (field_value,)
 
     @staticmethod

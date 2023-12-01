@@ -15,26 +15,26 @@ class Device(BaseModel):
     status: str = "ACTIVE"
 
     @staticmethod
-    def __sql_create_table__():
-        sql_template = """CREATE TABLE IF NOT EXISTS devices (
+    def __sql_create_table__(environment: str):
+        sql_template = """CREATE TABLE IF NOT EXISTS devices_"""+environment+""" (
             device_id VARCHAR ( 50 ) PRIMARY KEY,
             device_name VARCHAR ( 50 ) UNIQUE NOT NULL,
-            owner_id VARCHAR ( 50 ) NOT NULL REFERENCES users(user_id),
+            owner_id VARCHAR ( 50 ) NOT NULL REFERENCES users_"""+environment+"""(user_id),
             created_on TIMESTAMP NOT NULL,
             device_status VARCHAR ( 50 )
         )"""
         return sql_template
     
-    def __sql_insert__(self):
-        sql_template = """INSERT INTO devices (
+    def __sql_insert__(self, environment: str):
+        sql_template = """INSERT INTO devices_"""+environment+""" (
             device_id, device_name, owner_id, created_on, device_status
         ) VALUES (%s, %s, %s, %s, %s)"""
         values = (self.device_id, self.device_name, self.owner_id, self.created_on, self.status)
         return sql_template, values
 
     @staticmethod
-    def __sql_select_item__(field_names, field_values):
-        sql_template = f"SELECT * FROM devices WHERE"
+    def __sql_select_item__(field_names, field_values, environment: str):
+        sql_template = f"SELECT * FROM devices_{environment} WHERE"
         search_string = []
         sql_values=[]
         for field_index, field_name in enumerate(field_names):
