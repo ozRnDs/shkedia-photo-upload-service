@@ -1,9 +1,9 @@
 
 import logging
 logger = logging.getLogger(__name__)
-from fastapi import APIRouter, HTTPException, status, Request, Depends, UploadFile
+from fastapi import APIRouter, HTTPException, status, Request, Depends, UploadFile, Body
 from typing import List, Annotated
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 import base64
 
@@ -39,6 +39,9 @@ class ImageRequest(BaseModel):
 
 class PutImagesMetadataResponse(BaseModel):
     number_of_images_updated: int
+
+class PutImageRequest(BaseModel):
+    image: str
 
 class GetUploadListResponse(BaseModel):
     images_names: List[str]=[] # List of the field image_device_name values
@@ -109,13 +112,14 @@ class UploadServiceHandlerV1:
 
     def get_latest_image_date(self, token: Annotated[Token, Depends(get_token)], user_name: str, device_id: str) -> GetLatestImageResponse:
         try:
-            search_result = self.media_db_service.search_media(token=token,device_id=device_id)
+            page_size = 1000
+            search_result = self.media_db_service.search_media(token=token,device_id=device_id, page_size=page_size)
             if search_result.total_results_number==0:
                 return GetLatestImageResponse.get_latest_image_repsonse(create_on=datetime(year=1970, month=1, day=1))
             media_list_for_device = search_result.results
-            while len(media_list_for_device) < search_result.total_results_number:
-                search_result = self.media_db_service.search_media(token=token,device_id=device_id, page_number=search_result.page_number+1)
-            
+            while len(search_result.results)>0:
+                search_result = self.media_db_service.search_media(token=token,device_id=device_id, page_size=page_size, page_number=search_result.page_number+1)
+                media_list_for_device += search_result.results
             media_list_for_device.sort(key=lambda x: x.created_on, reverse=True)
 
             return GetLatestImageResponse.get_latest_image_repsonse(create_on=media_list_for_device[0].created_on)
@@ -131,12 +135,14 @@ class UploadServiceHandlerV1:
     def get_images_to_upload(self, token: Annotated[Token, Depends(get_token)], user_name:str, device_id: str, image_index: int=0)-> GetUploadListResponse:
         try:
             # Get all images for device_id and their MEDIA_STOAGE_STATUS=PENDING
-            search_result = self.media_db_service.search_media(token=token, device_id=device_id, upload_status="PENDING")
+            page_size=1000
+            search_result = self.media_db_service.search_media(token=token, device_id=device_id, upload_status="PENDING", page_size=page_size)
             media_list_for_device = search_result.results
             if len(media_list_for_device)==0:
                 return GetUploadListResponse(images_names=[], images_ids=[], images_uri=[])
-            while len(media_list_for_device) < search_result.total_results_number:
-                search_result = self.media_db_service.search_media(token=token,device_id=device_id, upload_status="PENDING", page_number=search_result.page_number+1)
+            while len(search_result.results)>0 and len(media_list_for_device)<self.max_response_length:
+                search_result = self.media_db_service.search_media(token=token,device_id=device_id, upload_status="PENDING", page_size=page_size, page_number=search_result.page_number+1)
+                media_list_for_device += search_result.results
             #TODO: Sort all the images by created date
             media_list_for_device.sort(key=lambda x: x.created_on, reverse=True)
             #TODO: Calculate the list according to the image_index value
@@ -180,21 +186,25 @@ class UploadServiceHandlerV1:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
             raise HTTPException(status_code=500,detail="Server Internal Error")
 
-    def put_image(self, token: Annotated[Token, Depends(get_token)], 
-                  user_name: str, device_id: str, 
-                  image_name: str, image_id: str, 
-                  image_content: UploadFile,
-                  overwrite: bool = False) -> dict:
+    def put_image(self, image: UploadFile, 
+                  token: Annotated[Token, Depends(get_token)], 
+                  user_name: Annotated[str, Body(...)],
+                  device_id: Annotated[str, Body(...)], 
+                  image_name: Annotated[str, Body(...)],
+                  image_id: Annotated[str, Body(...)],
+                  uri: Annotated[str, Body(...)],
+                  overwrite: Annotated[bool, Body(...)]=False) -> dict:
         try:
             # Get the image metadata
-            search_result = self.media_db_service.search_media(token=token, media_id=image_id)
+            # body = await request.form()
+            search_result = self.media_db_service.search_media(token=token, media_id=eval(image_id))
             search_result = search_result.results[0]
             if not overwrite and search_result.storage_media_uri:
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Media with that name already exists")
             values_to_encrypt={}
-            values_to_encrypt["image"]=image_content.file.read()
+            values_to_encrypt["image"]=image.file.read()
             # Create thumbnail of the image
-            values_to_encrypt["thumbnail"]=self.image_proccessing_service.get_image_thumbnail_bytes(image_content.file)
+            values_to_encrypt["thumbnail"]=self.image_proccessing_service.get_image_thumbnail_bytes(image.file)
             # Encrypt all the data and get encrypted key
             values_to_encrypt, encrypted_key = self.encrytion_service.encrypt(values_to_encrypt=values_to_encrypt)
 
