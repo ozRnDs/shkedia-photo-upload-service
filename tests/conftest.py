@@ -27,7 +27,7 @@ def original_service_uri_fixture():
 
 @pytest.fixture(scope="session")
 def search_result_fixture():
-    with open(f"{os.getcwd()}/tests/data/media_data_30112023105712.pickle",'rb') as file:
+    with open(f"{os.getcwd()}/tests/data/media_data_01122023083749.pickle",'rb') as file:
         media_list = pickle.load(file)
     return media_list
 

@@ -149,10 +149,40 @@ def test_put_image_nominal(client_fixture,
     params = { "device_id": SearchResult(**search_result_fixture).results[0].device_id ,
               "user_name": "No user",
                "image_name": image_name,
-                "image_id":  search_result_fixture["results"][0]["media_id"]}
+                "image_id":  search_result_fixture["results"][0]["media_id"],
+                "overwrite": True}
 
     # RUN
     results = client_fixture.put("/images",params=params, files=files ,headers=real_token.get_token_as_header())
 
     # ASSERT
     assert results.status_code == 200
+    assert type(results.json()) == dict
+    assert len(results.json()) == 0
+
+def test_put_image_file_exists(client_fixture, 
+                           search_result_fixture, 
+                           token_fixture, 
+                           test_images_list):
+    #SETUP
+    with open(test_images_list[1],'rb') as image_file:
+        image_bytes = image_file.read()
+    
+    files={"image_content": image_bytes}
+
+    image_name = os.path.basename(test_images_list[0])
+
+    real_token = Token(**token_fixture)
+
+    params = { "device_id": SearchResult(**search_result_fixture).results[0].device_id ,
+              "user_name": "No user",
+               "image_name": image_name,
+                "image_id":  search_result_fixture["results"][0]["media_id"],
+                "overwrite": False}
+
+    # RUN
+    results = client_fixture.put("/images",params=params, files=files ,headers=real_token.get_token_as_header())
+
+    # ASSERT
+    assert results.status_code == 409
+    assert "already exists" in results.json()["detail"]
