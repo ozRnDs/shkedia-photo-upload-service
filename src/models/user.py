@@ -8,7 +8,7 @@ class User(BaseModel):
     created_on: str = Field(default_factory=lambda: datetime.now().isoformat())
 
 class UserRequest(BaseModel):
-    user_name: str
+    username: str
     password: str
 
 class UserDB(User):
