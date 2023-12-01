@@ -45,9 +45,6 @@ class MediaDBService:
         search_response = requests.get(insert_url,params=kargs, headers=token.get_token_as_header())
 
         if search_response.status_code == 200:
-            #TODO: Make sure the db_service resturn only one type of response (SearchResult)
-            if type(search_response.json())==dict:
-                return MediaDB(**search_response.json())
             return SearchResult(**search_response.json())
         raise Exception(search_response.json()["detail"])
     
