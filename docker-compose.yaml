@@ -1,6 +1,6 @@
 services:
   auth-api:
-    image: public.ecr.aws/q2n5r5e8/ozrnds/shkedia-photo-upload-service:${UPLOAD_SERVICE_VERSION}
+    image: public.ecr.aws/q2n5r5e8/ozrnds/shkedia-photo-upload-service:${GALLARY_BACKEND_VERSION}
     container_name: upload_api
     env_file: .local/upload_service.env
     environment:
