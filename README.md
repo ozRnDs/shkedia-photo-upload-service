@@ -33,14 +33,16 @@ class GetUploadListResponse:
     images_uri: List[str] # List of the field image_device_uri values
 ```
 
-### Handle media
+### Handle Users Communication
 | Method | Route | Description | Input | Output | Notes |
 | -- | -- | -- | -- | -- | -- |
-| PUT | /v1/media | Upload new media information | MediaRequest Model | MediaDB Object | The device_id is the most important owner. In the future should be retreived by the token |
-| GET | /v1/media/search?page_size=&page_number=&<search_field> | Get a media or list of medias according to the search parameters. The search parameters are fields in the MediDB Object | *page_size* - number of results if single http request<br>*page_number* - The specific "result page" that was retreived<br> *<search_field>* - Property to search by. **Example:** media_name=Test_Media&media_name=Test_Media2 -> will get all the medias with either names  | MediaDB or SearchResult objects | - |
-| GET | /v1/media/{media_id} | Equals to path *v1/media/search?media_id= | media_id | MediaDB Object | - |
-| DELETE | /v1/media/{media_id} | Deletes media from the db | media_id | MediaDB Object | NOT IMPLEMENTED |
-| POST | /v1/media | Updates the media sent in the body | MediaDB object | MediaDB Object |
+| GET | /user/register?user_name= | Check if user name is taken | **Query Params:** user_name | 
+| PUT | /user/register | 
+| GET | /user/device/register? | 
+| GET | /user/device/list | 
+| GET | /user/device/reattach | 
+| GET | /user/login?user_name= |  
+| PUT | /user/login | 
 
 
 # Deploy
