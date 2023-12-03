@@ -67,7 +67,7 @@ if __name__ == "__main__":
     token = login("test_user", "new_user")
     with open(f"{os.getcwd()}/tests/data/token_data_{datetime.now().strftime('%d%m%Y%H%M%S')}.pickle","wb") as file:
         pickle.dump(token.model_dump(), file, protocol=pickle.HIGHEST_PROTOCOL)
-    user = search_user(token=token, search_field="user_name", search_value="test_user")
+    user = search_user(token=token, search_field="user_name", search_value="tester1")
     try:
         logger.info(f"Search for {user.user_name} medias")
         results = search_media(token=token, owner_id=user.user_id)
