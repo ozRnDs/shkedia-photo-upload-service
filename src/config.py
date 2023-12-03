@@ -20,6 +20,9 @@ class ApplicationConfiguration:
     USER_DB_HOST: str = "10.0.0.5"
     USER_DB_PORT: str = "24430"
 
+    # Image Processing Parameters
+    THUMBNAIL_MAX_WIDTH: int = 500
+    THUMBNAIL_MAX_HEIGHT: int = 500
 
     # Encryption Configuration Values
     PUBLIC_KEY_LOCATION: str = ".local/data.pub"

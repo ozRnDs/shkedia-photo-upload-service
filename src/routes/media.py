@@ -9,7 +9,7 @@ import base64
 
 from repo.service import MediaRepoService
 from db.media_service import MediaDBService, MediaDB, MediaRequest, SearchResult, Token
-from image_processing.service import ImageProccessingService
+from image_processing.service import ImageProcessingService
 from encryption.service import EncryptService
 
 def get_token(request:Request):
@@ -67,7 +67,7 @@ class UploadServiceHandlerV1:
                 media_db_service: MediaDBService,
                 encryption_service: EncryptService,
                 media_repo_service: MediaRepoService,
-                image_proccessing_service: ImageProccessingService,
+                image_proccessing_service: ImageProcessingService,
                 max_response_length: int = 200,
                  ):
         self.media_db_service = media_db_service
@@ -98,7 +98,7 @@ class UploadServiceHandlerV1:
                              endpoint=self.get_images_to_upload,
                              methods=["get"],
                              response_model=GetUploadListResponse)
-        router.add_api_route(path="/", 
+        router.add_api_route(path="", 
                              endpoint=self.put_image,
                              methods=["put"])
         router.add_api_route(path="/delete/next", 
@@ -225,7 +225,11 @@ class UploadServiceHandlerV1:
         except Exception as err:
             if type(err) == HTTPException:
                 raise err            
-            logger.error(err)
+            error_details = {
+                "media_id": search_result.media_id,
+                "error": str(err)
+            }
+            logger.error(str(error_details))
             raise HTTPException(status_code=500, detail="Sorry, Something is wrong. Can't get an answer")
 
     def get_images_to_delete(self, token: Annotated[Token, Depends(get_token)], user_name: str, device_id: str) -> GetImagesToDeleteResponse:
