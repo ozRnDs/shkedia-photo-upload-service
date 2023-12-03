@@ -16,7 +16,7 @@ from encryption.service import EncryptService
 from routes.media import UploadServiceHandlerV1
 from routes.users import AuthServiceHandlerV1
     
-app = FastAPI(description="Rest API Interface for the media db service")
+app = FastAPI(description="Rest API Interface for the upload service", title="Project Shkedia - Upload Service")
 
 #TODO: Bind auth service as middleware to all requests
 
