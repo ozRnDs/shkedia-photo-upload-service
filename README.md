@@ -89,7 +89,7 @@ class GetUploadListResponse:
     ```bash
     export UPLOAD_SERVICE_VERSION=$(cz version -p)
     export IMAGE_NAME=shkedia-photo-upload-service:${UPLOAD_SERVICE_VERSION}
-    export IMAGE_FULL_NAME=public.ecr.aws/q2n5r5e8/ozrnds/${IMAGE_NAME}
+    export IMAGE_FULL_NAME=public.ecr.aws/q2n5r5e8/project-shkedia/${IMAGE_NAME}
     ```
 2. Build the image
     ```bash

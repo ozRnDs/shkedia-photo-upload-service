@@ -1,6 +1,6 @@
 services:
   auth-api:
-    image: public.ecr.aws/q2n5r5e8/ozrnds/shkedia-photo-upload-service:${GALLERY_BACKEND_VERSION}
+    image: public.ecr.aws/q2n5r5e8/project-shkedia/upload-service:${GALLERY_BACKEND_VERSION}
     container_name: upload_api
     env_file: .local/upload_service_${ENVIRONMENT}.env
     environment:
@@ -23,4 +23,4 @@ services:
       - "4433:5000"
     volumes:
       - ${HOST_MOUNT}:/temp
-    # restart: always
+    restart: always
