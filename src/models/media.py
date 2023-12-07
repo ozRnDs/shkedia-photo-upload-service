@@ -30,7 +30,8 @@ class MediaRequest(BaseModel):
     media_thumbnail_height: int | None = None
     created_on: datetime
     device_id: str
-    device_media_uri: str  
+    device_media_uri: str
+    exif: str | None = None
 
 class MediaResponse(MediaRequest):
     media_id: str = Field(default_factory=lambda:str(uuid4()))
@@ -64,6 +65,7 @@ class MediaDB(MediaResponse):
             created_on TIMESTAMP NOT NULL,
             device_id VARCHAR ( 50 ) NOT NULL REFERENCES devices_"""+environment+"""(device_id),
             device_media_uri VARCHAR ( 250 ) NOT NULL,
+            exif TEXT,
             media_id VARCHAR ( 50 ) PRIMARY KEY,
             upload_status VARCHAR ( 50 ) NOT NULL,
             media_status_on_device VARCHAR ( 50 ) NOT NULL,

@@ -1,4 +1,4 @@
-
+import json
 import logging
 logger = logging.getLogger(__name__)
 from fastapi import APIRouter, HTTPException, status, Request, Depends, UploadFile, Body
@@ -197,17 +197,16 @@ class UploadServiceHandlerV1:
         try:
             # Get the image metadata
             # body = await request.form()
-            search_result = self.media_db_service.search_media(token=token, media_id=eval(image_id))
+            search_result = self.media_db_service.search_media(token=token, media_id=image_id)
             search_result = search_result.results[0]
             if not overwrite and search_result.storage_media_uri:
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Media with that name already exists")
             values_to_encrypt={}
             values_to_encrypt["image"]=image.file.read()
             # Create thumbnail of the image
-            values_to_encrypt["thumbnail"]=self.image_proccessing_service.get_image_thumbnail_bytes(image.file)
+            values_to_encrypt["thumbnail"], image_size, thumbnail_size, exif=self.image_proccessing_service.get_image_thumbnail_bytes(image.file)
             # Encrypt all the data and get encrypted key
             values_to_encrypt, encrypted_key = self.encrytion_service.encrypt(values_to_encrypt=values_to_encrypt)
-
             # Upload the encrypted image to the repo
             media_storage_info = self.media_repo_service.put_media(token=token, 
                                                                    media_id=search_result.media_id,
@@ -219,14 +218,19 @@ class UploadServiceHandlerV1:
             search_result.storage_bucket_name=media_storage_info.bucket_name
             search_result.storage_media_uri=media_storage_info.media_uri # Make sure repo returns it
             search_result.storage_service_name=media_storage_info.storage_service_name # Make sure repo returns it
+            search_result.media_width=image_size[0]
+            search_result.media_height=image_size[1]
+            search_result.media_thumbnail_width=thumbnail_size[0]
+            search_result.media_thumbnail_height=thumbnail_size[1]
             search_result.upload_status="UPLOADED"
+            search_result.exif=json.dumps(exif)
             self.media_db_service.update(token=token, media=search_result)
             return {}
         except Exception as err:
             if type(err) == HTTPException:
                 raise err            
             error_details = {
-                "media_id": search_result.media_id,
+                "media_id": image_id,
                 "error": str(err)
             }
             logger.error(str(error_details))
