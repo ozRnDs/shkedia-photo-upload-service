@@ -27,7 +27,7 @@ def original_service_uri_fixture():
 
 @pytest.fixture(scope="session")
 def search_result_fixture():
-    with open(f"{os.getcwd()}/tests/data/media_data_01122023083749.pickle",'rb') as file:
+    with open(f"{os.getcwd()}/tests/data/media_data_07122023191705.pickle",'rb') as file:
         media_list = pickle.load(file)
     return media_list
 
@@ -53,4 +53,6 @@ def token_fixture():
 
 @pytest.fixture(scope="session")
 def test_images_list():
-    return [f"{os.getcwd()}/tests/data/test.jpg",f"{os.getcwd()}/tests/data/test_large.jpg"]
+    return [f"{os.getcwd()}/tests/data/test.jpg",
+            f"{os.getcwd()}/tests/data/test_large.jpg", 
+            f"{os.getcwd()}/tests/data/20230406_112401.jpg"]
