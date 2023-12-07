@@ -1,3 +1,10 @@
+## 0.2.0 (2023-12-07)
+
+### Feat
+
+- **routes/media,models/media,image_processing/service**: Extract more meta data (dimensions, EXIF) from the image and send it to the db
+- **encryption/service**: Change the order between compression and encryption
+
 ## 0.1.0 (2023-12-03)
 
 ### Feat
