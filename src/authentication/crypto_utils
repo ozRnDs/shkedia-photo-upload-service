@@ -1,0 +1,5 @@
+
+
+
+def encrypt_password(password: str):
+    return password
