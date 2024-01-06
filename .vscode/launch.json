@@ -23,7 +23,8 @@
                 "JWT_KEY_LOCATION": "/temp/jwt_token",
                 "TOKEN_TIME_PERIOD": "1",
                 "PUBLIC_KEY_LOCATION": "/temp/data.pub",
-                "PRIVATE_KEY_LOCATION": "/temp/data"
+                "PRIVATE_KEY_LOCATION": "/temp/data",
+                "ENVIRONMENT": "dev0"
             }
         }
     ]
