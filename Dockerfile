@@ -7,7 +7,9 @@ WORKDIR /usr/src
 
 COPY requirements.txt ./
 
+COPY .autodevops/.build/pip.conf /root/.config/pip/
 RUN pip install -r requirements.txt
+RUN rm -rf /root/.config
 
 COPY /src ./
 

@@ -5,3 +5,4 @@ requests==2.31.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]
 pillow
+project-shkedia-models
