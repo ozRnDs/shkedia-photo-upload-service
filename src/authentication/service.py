@@ -11,11 +11,8 @@ from typing import Annotated
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from datetime import timedelta, datetime
-import sqlalchemy
-from sqlalchemy.orm import Session
 
 from db.user_service import UserDBService, UserRequest
-from db.sql_models import User
 from .models import Token
 
 class TokenData(BaseModel):

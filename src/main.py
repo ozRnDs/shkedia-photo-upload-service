@@ -22,13 +22,14 @@ app = FastAPI(description="Rest API Interface for the upload service", title="Pr
 
 # Initialize all app services
 try:
-    auth_service = AuthService(jwt_key_location=app_config.JWT_KEY_LOCATION,
-                               db_service=None,
-                               default_expire_delta_min=app_config.TOKEN_TIME_PERIOD)
-    
+        
     media_db_service = MediaDBService(host=app_config.MEDIA_DB_HOST, port=app_config.MEDIA_DB_PORT)
     
     user_db_service = UserDBService(host=app_config.USER_DB_HOST, port=app_config.USER_DB_PORT)
+
+    auth_service = AuthService(jwt_key_location=app_config.JWT_KEY_LOCATION,
+                               user_db_service=user_db_service,
+                               default_expire_delta_min=app_config.TOKEN_TIME_PERIOD)
 
     media_repo_service = MediaRepoService(host=app_config.MEDIA_REPO_HOST, port=app_config.MEDIA_REPO_PORT)
     
