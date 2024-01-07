@@ -1,3 +1,22 @@
+## 0.3.0 (2024-01-07)
+
+### Feat
+
+- **main**: Bind publisher to the upload process. Currently only on the full upload process
+- **main**: Bind the publisher and UploaderV2 to the main app
+- **publisher**: Add publisher component to send message of incomming images
+- **routes/users**: Add auth service. Add list_of_devices_ids to the get_devices_list route's response
+- **routes_v2/media**: Create v2 api for media routes. Adjust to auth service and add a route that uploads the image and the metadata at once
+
+### Refactor
+
+- **publisher,test_publisher**: Adjust the publisher as service to the project shkedia. The service publishes specific types of message supported by the project's components
+- **models/media**: Set the SearchResult.results pydantic to Any. To support multiple result types
+- **db/media_service**: Work with project-shkedia-models library. Add retry mechanism for HTTP calls
+- **authentication**: Add auth_token to the request to be used by the routes to access other microservices in the system
+- **main,AuthService**: Adjust to new AuthService version and bind it to the user_db_service
+- **AuthService,sql_models**: Update the AuthService from the MediaDBService. Import the sql_models to implement here
+
 ## 0.2.0 (2023-12-07)
 
 ### Feat
