@@ -6,11 +6,11 @@ class ApplicationConfiguration:
 
     RECONNECT_WAIT_TIME: int = 1
     RETRY_NUMBER: int = 10
+    ENVIRONMENT: str = "test"
 
     # Authentication Configuration values
     JWT_KEY_LOCATION: str = "/temp/jwt_token"
-    AUTH_SERVICE_URL: str = "CHANGE ME"
-    TOKEN_TIME_PERIOD: int = 15
+    TOKEN_TIME_PERIOD: int = 120
 
     # DB Configuration values
     MEDIA_DB_HOST: str = "10.0.0.5"
@@ -28,6 +28,10 @@ class ApplicationConfiguration:
     PUBLIC_KEY_LOCATION: str = ".local/data.pub"
     PRIVATE_KEY_LOCATION: str = ".local/data"
     
+    # PUBLISH
+    IMAGE_CONTENT_TOPIC_NAME: str = "images_content"
+    IMAGE_METADATA_TOPIC_NAME: str = "images_metadata"
+
     def __init__(self) -> None:
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.INFO)
