@@ -8,7 +8,7 @@ __pycache__/
 
 # Local dev folder
 .local/
-.autodevops/.build
+.build/
 # Distribution / packaging
 .Python
 build/
