@@ -19,7 +19,7 @@ from encryption.service import EncryptService
 from routes.media import UploadServiceHandlerV1
 from routes.users import AuthServiceHandlerV1
 from routes_v2.media import UploadServiceHandlerV2
-from publisher.service import PublisherService
+from publisher.service import PublisherService, UploadTopicsEnum
 
 app = FastAPI(description="Rest API Interface for the upload service", title="Project Shkedia - Upload Service")
 
@@ -34,8 +34,12 @@ app.add_middleware(
 
 # Initialize all app services
 try:
+    publisher_service = None
     try:
-        publisher_service = PublisherService(topic_names=[app_config.IMAGE_CONTENT_TOPIC_NAME,app_config.IMAGE_METADATA_TOPIC_NAME],environment=app_config.ENVIRONMENT)
+        topics = {}
+        topics[UploadTopicsEnum.MEDIA_CONTENT] = app_config.IMAGE_CONTENT_TOPIC_NAME
+        topics[UploadTopicsEnum.MEDIA_METADATA] = app_config.IMAGE_METADATA_TOPIC_NAME
+        publisher_service = PublisherService(topic_names=topics,name=app_config.SERVICE_NAME,id=app_config.VERSION,environment=app_config.ENVIRONMENT)
     except Exception as err:
         traceback.print_exc()
         logger.warning("Could not initialize the publisher service. Service will work without it")
@@ -62,6 +66,7 @@ try:
                                            media_repo_service=media_repo_service) #, auth_service=auth_service)
 
     media_service_v2 = UploadServiceHandlerV2(app_logging_service=None,
+                                              publisher_service=publisher_service,
                                               encryption_service=encryption_service,
                                               media_db_service=media_db_service,
                                               auth_service=auth_service,

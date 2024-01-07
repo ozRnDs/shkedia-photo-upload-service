@@ -32,8 +32,8 @@
                 "USER_DB_HOST": "10.0.0.5",
                 "USER_DB_PORT": "4430",
                 "IMAGE_CONTENT_TOPIC_NAME":"images_content",
-                "IMAGE_METADATA_TOPIC_NAME":"images_metadata"
-
+                "IMAGE_METADATA_TOPIC_NAME":"images_metadata",
+                "VERSION": "0.2.0-dev"
             }
         }
     ]

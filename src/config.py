@@ -7,6 +7,8 @@ class ApplicationConfiguration:
     RECONNECT_WAIT_TIME: int = 1
     RETRY_NUMBER: int = 10
     ENVIRONMENT: str = "test"
+    SERVICE_NAME: str = "Upload API"
+    VERSION: str = "0.2.0"
 
     # Authentication Configuration values
     JWT_KEY_LOCATION: str = "/temp/jwt_token"

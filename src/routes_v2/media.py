@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 import base64
 
+from publisher.service import PublisherService, UploadTopicsEnum, ActionsEnum, TimestampLogger
 from authentication.service import AuthService
 from repo.service import MediaRepoService
 from db.media_service import MediaDBService, MediaDB, MediaRequest
@@ -67,6 +68,7 @@ class UploadServiceHandlerV2:
                 encryption_service: EncryptService,
                 media_repo_service: MediaRepoService,
                 image_proccessing_service: ImageProcessingService,
+                publisher_service: PublisherService | None,
                 max_response_length: int = 200,
                  ):
         self.auth_service = auth_service
@@ -76,8 +78,8 @@ class UploadServiceHandlerV2:
         self.encrytion_service = encryption_service
         self.media_repo_service = media_repo_service
         self.max_response_length = max_response_length
+        self.publisher_service = publisher_service
         self.router = self.__initialize_routes__()
-
 
     def __initialize_routes__(self):
         router = APIRouter(tags=["V2 - Images Upload"])
@@ -253,17 +255,25 @@ class UploadServiceHandlerV2:
                   overwrite: Annotated[bool, Body(...)]=False) -> dict:
         try:
             # Create the media metadata
+            time_logger = TimestampLogger.getLogger(f"Put new image request")
+
             media_request = MediaRequest(media_name=image.filename,
                                 media_type="IMAGE",
                                 media_size_bytes=image.size,
                                 created_on=datetime.fromisoformat(created_on),
                                 device_id=device_id,
                                 device_media_uri=device_media_uri)
-            
             search_result = self.media_db_service.insert_media(token=request.user_data.auth_token,media=media_request)
+            time_logger = TimestampLogger.getLogger(f"Insert Metadata and publish")
+
+            self.publisher_service.publish(topic_type=UploadTopicsEnum.MEDIA_METADATA,
+                                           object_to_publish=search_result,
+                                           action=ActionsEnum.PUT, timestamps=time_logger)
+            
             search_result = self.media_db_service.search_media(token=request.user_data.auth_token,media_id=search_result.media_id,response_type=MediaObjectEnum.Media)
             search_result = Media(**search_result.results[0])
             values_to_encrypt={}
+            time_logger = TimestampLogger.getLogger(f"Get file from request")
             values_to_encrypt["image"]=image.file.read()
             # Create thumbnail of the image
             values_to_encrypt["thumbnail"], image_size, thumbnail_size, exif=self.image_proccessing_service.get_image_thumbnail_bytes(image.file)
@@ -273,7 +283,12 @@ class UploadServiceHandlerV2:
             media_storage_info = self.media_repo_service.put_media(token=request.user_data.auth_token, 
                                                                     media_id=search_result.media_id,
                                                                     media_bytes=values_to_encrypt["image"])
-
+            
+            time_logger = TimestampLogger.getLogger(f"Uploaded media to repo and publish")
+            self.publisher_service.publish(topic_type=UploadTopicsEnum.MEDIA_CONTENT,
+                                           object_to_publish=MediaIDs(**search_result.model_dump()),
+                                           action=ActionsEnum.PUT, timestamps=time_logger)
+            
             # Update the image metadata in the db (Added key, thumbnail, storage status and url)
             search_result.media_key=encrypted_key
             search_result.media_thumbnail=values_to_encrypt["thumbnail"]
