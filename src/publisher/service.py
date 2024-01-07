@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 from uuid import uuid4
 import boto3
 from .sns_wrapper import SnsWrapper
-from typing import List, Dict
+from typing import List, Dict, Any
 from project_shkedia_models.message import ProjectShkediaMsgMetadata, ProjectShkediaComponent, ProjectShkediaMessage, ActionsEnum,TimestampLogger
 
 from enum import Enum
@@ -32,10 +32,12 @@ class PublisherService:
         self.details = ProjectShkediaComponent(name=name, id=id)
 
 
-    def publish(self, topic_type: UploadTopicsEnum, object_to_publish, action: ActionsEnum, timestamps: TimestampLogger):
+    def publish(self, topic_type: UploadTopicsEnum, object_to_publish: List[Any], action: ActionsEnum, timestamps: TimestampLogger):
         try:
+            if not type(object_to_publish) == list:
+                object_to_publish = [object_to_publish]
             topic_name = self.topic_names[topic_type]
-            object_class = type(object_to_publish)
+            object_class = type(object_to_publish[0])
             object_type_name = object_class.__module__ + "." + object_class.__name__
             # To get the class from it's name use the following: 
             #   module_name, class_name = object_type_name.rsplit('.', 1)
