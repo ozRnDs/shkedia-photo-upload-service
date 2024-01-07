@@ -133,4 +133,4 @@ class SearchResult(BaseModel):
     total_results_number: int
     page_number: int = 0
     page_size: int | None = None
-    results: List[MediaDB]
+    results: List[Any]
