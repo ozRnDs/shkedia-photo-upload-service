@@ -81,7 +81,7 @@ class AuthService:
         try:
             token = Token.from_token_header(request.headers.get("authorization"))
             user_data = self.user_db_service.get_current_user(token)
-            request.user_data = TokenData(name=user_data.user_name,id=user_data.user_id) 
+            request.user_data = TokenData(name=user_data.user_name,id=user_data.user_id, auth_token=token) 
             return
         except Exception as err:
             logger.warning(str(err))
