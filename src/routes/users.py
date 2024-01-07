@@ -9,6 +9,8 @@ import base64
 from db.user_service import UserDBService, UserRequest, DeviceRequest
 from db.media_service import Token #TODO: Move token to different place
 
+from authentication.service import AuthService
+
 def get_token(request:Request):
     try:
         return Token.get_token_from_request(request=request)
@@ -31,14 +33,16 @@ class DeviceResponse(BaseModel):
 class DeviceListResponse(BaseModel):
     user_name: str
     devices_list: List[str]
+    devices_ids: List[str]
     session_id: str = "Deprecated Field" # Deprecated
 
 
 class AuthServiceHandlerV1:
     def __init__(self, 
-                # app_logging_service,
+                auth_service: AuthService,
                 user_db_service: UserDBService,
                  ):
+        self.auth_service = auth_service
         self.user_db_service = user_db_service
         self.router = self.__initialize_routes__()
 
@@ -66,7 +70,8 @@ class AuthServiceHandlerV1:
         router.add_api_route(path="/device/list", 
                              endpoint=self.get_devices_list,
                              methods=["get"],
-                             response_model=DeviceListResponse)
+                             response_model=DeviceListResponse,
+                             dependencies=[Depends(self.auth_service.auth_request)])
         return router
     
     def put_user(self, user: UserRequest) -> PutUserResponse:
@@ -107,14 +112,15 @@ class AuthServiceHandlerV1:
         except Exception as err:
             raise HTTPException(status_code=500, detail=str(err))
 
-    def get_devices_list(self, token: Annotated[Token, Depends(get_token)], user_name: str) -> DeviceListResponse:
+    def get_devices_list(self, request: Request) -> DeviceListResponse:
         try:
             # Get User Details
-            user = self.user_db_service.search_user(token=token, search_field="user_name", search_value=user_name)
+            # user = self.user_db_service.search_user(token=token, search_field="user_name", search_value=user_name)
             # Extract User Id
-            list_of_devices = self.user_db_service.search_device(token=token, search_field="owner_id", search_value=user.user_id)
+            list_of_devices = self.user_db_service.search_device(token=request.user_data.auth_token, search_field="owner_id", search_value=request.user_data.id)
             # Get all devices with owner_id = user_id
             list_of_devices_names = [device.device_name for device in list_of_devices]
-            return DeviceListResponse(user_name=user_name, devices_list=list_of_devices_names)
+            list_of_devices_ids = [device.device_id for device in list_of_devices]
+            return DeviceListResponse(user_name=request.user_data.name, devices_list=list_of_devices_names, devices_ids=list_of_devices_ids)
         except Exception as err:
             raise HTTPException(status_code=500, detail=str(err))
