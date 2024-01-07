@@ -1,3 +1,9 @@
+## 0.3.1 (2024-01-07)
+
+### Fix
+
+- **publish/service**: service.publish, if object_to_publish is not a list, create one from it and pass it on
+
 ## 0.3.0 (2024-01-07)
 
 ### Feat
