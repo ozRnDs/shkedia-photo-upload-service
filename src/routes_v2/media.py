@@ -301,7 +301,7 @@ class UploadServiceHandlerV2:
             search_result.media_thumbnail_height=thumbnail_size[1]
             search_result.upload_status="UPLOADED"
             search_result.exif=json.dumps(exif)
-            self.media_db_service.update(token=request.user_data.auth_token, media=MediaDB(**search_result.model_dump()))
+            self.media_db_service.update(token=request.user_data.auth_token, media=Media(**search_result.model_dump()))
             return {}
         except Exception as err:
             if type(err) == HTTPException:
