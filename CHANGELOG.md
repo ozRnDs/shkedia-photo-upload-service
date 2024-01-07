@@ -1,3 +1,9 @@
+## 0.3.2 (2024-01-07)
+
+### Fix
+
+- **routes/v2/media**: Send Media type to the media_db_service.update function.
+
 ## 0.3.1 (2024-01-07)
 
 ### Fix
