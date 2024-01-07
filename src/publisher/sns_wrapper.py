@@ -32,7 +32,7 @@ class SnsWrapper:
     # snippet-end:[python.example_code.sns.SnsWrapper]
 
     # snippet-start:[python.example_code.sns.CreateTopic]
-    def create_topic(self, name):
+    def create_topic(self, name, fifo=False, deduplicate=False):
         """
         Creates a notification topic.
 
@@ -40,10 +40,17 @@ class SnsWrapper:
         :return: The newly created topic.
         """
         try:
-            topic = self.sns_resource.create_topic(Name=name,Attributes={
-                    "FifoTopic": str(True),
-                    "ContentBasedDeduplication": str(True),
-                },)
+            deduplicate = fifo if not fifo else deduplicate
+            attributes = {}
+            if fifo:
+                attributes["FifoTopic"]=str(fifo)
+                name+=".fifo"
+            if deduplicate:
+                attributes["ContentBasedDeduplication"]=str(deduplicate)
+            if len(attributes)==0:
+                topic = self.sns_resource.create_topic(Name=name)
+            else:
+                topic = self.sns_resource.create_topic(Name=name,Attributes=attributes)
             logger.info("Created topic %s with ARN %s.", name, topic.arn)
         except ClientError:
             logger.exception("Couldn't create topic %s.", name)
@@ -208,7 +215,7 @@ class SnsWrapper:
 
     # snippet-start:[python.example_code.sns.Publish_MessageAttributes]
     @staticmethod
-    def publish_message(topic, message, message_id):
+    def publish_message(topic, message, **kargs):
         """
         Publishes a message, with attributes, to a topic. Subscriptions can be filtered
         based on message attributes so that a subscription receives messages only
@@ -216,8 +223,8 @@ class SnsWrapper:
 
         :param topic: The topic to publish to.
         :param message: The message to publish.
-        :param attributes: The key-value attributes to attach to the message. Values
-                           must be either `str` or `bytes`.
+        :param MessageDeduplicationId: Message id for fifo topics only. Must be str
+        :param MessageGroupId: Groupd id for fifo topics only. (Messages in the same group are in fifo)
         :return: The ID of the message.
         """
         try:
@@ -227,7 +234,7 @@ class SnsWrapper:
             #         att_dict[key] = {"DataType": "String", "StringValue": value}
             #     elif isinstance(value, bytes):
             #         att_dict[key] = {"DataType": "Binary", "BinaryValue": value}
-            response = topic.publish(Message=message,MessageDeduplicationId=message_id,MessageGroupId="some_id")
+            response = topic.publish(Message=message,**kargs)
             message_id = response["MessageId"]
             logger.info(
                 "Published message with attributes %s to topic %s.",
