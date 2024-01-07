@@ -24,7 +24,16 @@
                 "TOKEN_TIME_PERIOD": "1",
                 "PUBLIC_KEY_LOCATION": "/temp/data.pub",
                 "PRIVATE_KEY_LOCATION": "/temp/data",
-                "ENVIRONMENT": "dev0"
+                "ENVIRONMENT": "dev0",
+                "MEDIA_DB_HOST": "10.0.0.5",
+                "MEDIA_DB_PORT": "4431",
+                "MEDIA_REPO_HOST": "10.0.0.5",
+                "MEDIA_REPO_PORT": "4432",
+                "USER_DB_HOST": "10.0.0.5",
+                "USER_DB_PORT": "4430",
+                "IMAGE_CONTENT_TOPIC_NAME":"images_content",
+                "IMAGE_METADATA_TOPIC_NAME":"images_metadata"
+
             }
         }
     ]
