@@ -1,5 +1,5 @@
 # FROM python:3.11.6
-FROM python:3.11.6-slim
+FROM python:3.13.0a4-slim
 
 RUN mkdir -p /usr/src
 
